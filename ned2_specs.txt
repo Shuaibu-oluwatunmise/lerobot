@@ -1,0 +1,68 @@
+NED2 SPECIFICATIONS FOR LEROBOT INTEGRATION
+============================================
+
+Hardware:
+- Model: ned2
+- Weight: 7 kg
+- Payload: 300g
+- Reach: 490mm
+- Repeatability: ±0.5mm
+
+Connection:
+- Type: Ethernet TCP/IP
+- IP: 192.168.8.143
+- Port: 40001
+- Library: pyniryo
+
+Motors/Joints:
+- Count: 6 joints
+- Units: Radians
+- Names: ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
+- Types: ['stepper', 'stepper', 'stepper', 'xl430', 'xl430', 'xl330']
+- Read command: robot.joints (returns JointsPosition object)
+- Write command: robot.move(*joint_list)
+
+Joint Limits (radians):
+- Joint 1: min=-2.949, max=2.949
+- Joint 2: min=-1.83, max=0.61
+- Joint 3: min=-1.34, max=1.57
+- Joint 4: min=-2.089, max=2.089
+- Joint 5: min=-1.919, max=1.922
+- Joint 6: min=-2.53, max=2.53
+
+Joint Speed Limits (rad/s):
+- Joint 1: max=0.785
+- Joint 2: max=0.5235
+- Joint 3: max=0.785
+- Joint 4: max=1.57
+- Joint 5: max=1.57
+- Joint 6: max=1.775
+
+Gripper:
+- Type: ToolID.GRIPPER_1
+- Control: robot.open_gripper(), robot.close_gripper()
+
+Calibration:
+- Method: robot.calibrate_auto()
+- Check: robot.need_calibration()
+
+Learning Mode (for manual teaching):
+- Enable: robot.set_learning_mode(True)
+- Disable: robot.set_learning_mode(False)
+
+To run from vscode
+C:/Users/shuai/anaconda3/Scripts/activate
+& C:\Users\shuai\anaconda3\shell\condabin\conda-hook.ps1
+conda activate lerobot
+
+To get data:
+python src/lerobot/scripts/lerobot_record.py --config_path ned2_record_config.yaml
+
+To continue collecting data:
+python src/lerobot/scripts/lerobot_record.py --config_path ned2_record_config.yaml --resume true
+
+To train a policy:
+python src/lerobot/scripts/train.py --dataset.repo_id shuaibu/ned2_cube_pickup --policy.type act --training.num_epochs 1000
+
+To evaluate the policy:
+python src/lerobot/scripts/eval.py --dataset.repo_id shuaibu/ned2_cube_pickup --policy.type act --checkpoint path/to/trained/model

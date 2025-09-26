@@ -64,7 +64,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from pprint import pformat
 from typing import Any
-
+from lerobot.robots.ned2_follower import Ned2FollowerConfig
 from lerobot.cameras import (  # noqa: F401
     CameraConfig,  # noqa: F401
 )
@@ -187,6 +187,8 @@ class RecordConfig:
 
     def __post_init__(self):
         # HACK: We parse again the cli args here to get the pretrained path if there was one.
+        import logging
+        logger = logging.getLogger(__name__)
         policy_path = parser.get_path_arg("policy")
         if policy_path:
             cli_overrides = parser.get_cli_overrides("policy")
@@ -194,7 +196,7 @@ class RecordConfig:
             self.policy.pretrained_path = policy_path
 
         if self.teleop is None and self.policy is None:
-            raise ValueError("Choose a policy, a teleoperator or both to control the robot")
+            logger.warning("No teleop or policy specified - assuming manual control")
 
     @classmethod
     def __get_path_fields__(cls) -> list[str]:
@@ -338,12 +340,23 @@ def record_loop(
             act = {**arm_action, **base_action} if len(base_action) > 0 else arm_action
             act_processed_teleop = teleop_action_processor((act, obs))
         else:
-            logging.info(
-                "No policy or teleoperator provided, skipping action generation."
-                "This is likely to happen when resetting the environment without a teleop device."
-                "The robot won't be at its rest position at the start of the next episode."
-            )
-            continue
+            # logging.info(
+            #     "No policy or teleoperator provided, skipping action generation."
+            #     "This is likely to happen when resetting the environment without a teleop device."
+            #     "The robot won't be at its rest position at the start of the next episode."
+            # )
+            # continue
+
+            # For manual control, use current joint positions as "action"
+            # This records where the robot is at each frame
+            act_processed_teleop = {
+                "joint_1.pos": obs_processed["joint_1.pos"],
+                "joint_2.pos": obs_processed["joint_2.pos"],
+                "joint_3.pos": obs_processed["joint_3.pos"],
+                "joint_4.pos": obs_processed["joint_4.pos"],
+                "joint_5.pos": obs_processed["joint_5.pos"],
+                "joint_6.pos": obs_processed["joint_6.pos"],
+            }
 
         # Applies a pipeline to the action, default is IdentityProcessor
         if policy is not None and act_processed_policy is not None:
@@ -357,7 +370,11 @@ def record_loop(
         # Action can eventually be clipped using `max_relative_target`,
         # so action actually sent is saved in the dataset. action = postprocessor.process(action)
         # TODO(steven, pepijn, adil): we should use a pipeline step to clip the action, so the sent action is the action that we input to the robot.
-        _sent_action = robot.send_action(robot_action_to_send)
+        if policy is not None or teleop is not None:
+            _sent_action = robot.send_action(robot_action_to_send)
+        else:
+            # Manual control - don't send commands, just record current position
+            _sent_action = robot_action_to_send
 
         # Write to dataset
         if dataset is not None:

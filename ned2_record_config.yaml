@@ -1,0 +1,14 @@
+robot:
+  type: ned2_follower
+  ip_address: "192.168.8.143"
+  
+dataset:
+  repo_id: shuaibu/ned2_cube_pickup
+  single_task: "pick and place"
+  fps: 30
+  num_episodes: 10
+  episode_time_s: 30
+  reset_time_s: 15
+  push_to_hub: false
+
+teleop: null
