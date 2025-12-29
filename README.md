@@ -312,6 +312,31 @@ huggingface-cli upload ${hf_user}/${repo_name} path/to/pretrained_model
 
 See [eval.py](https://github.com/huggingface/lerobot/blob/main/src/lerobot/scripts/eval.py) for an example of how other people may use your policy.
 
+### My Contribution
+> **Added by [Oluwatunmise Shuaibu](https://github.com/Shuaibu-oluwatunmise)**
+
+I successfully implemented the integration of the **Niryo Ned 2** 6-axis robot arm into the LeRobot ecosystem, including full support for the **Luxonis OAK-D** depth camera.
+
+#### Key Implementations:
+
+1.  **Ned2Follower Robot Class** (`lerobot/robots/ned2_follower/ned2_follower.py`):
+    *   Developed a custom `Ned2Follower` class inheriting from LeRobot's base `Robot`.
+    *   Integrated `pyniryo` SDK to handle robot communication, calibration, and joint control.
+    *   Implemented safety features like `max_relative_target` to prevent collisions during teleoperation.
+    *   Mapped robot joint states to LeRobot's observation space (`joint_1.pos` to `joint_6.pos`).
+
+2.  **OAK-D Camera Support**:
+    *   Added seamless integration for OAK-D cameras using the `depthai` pipeline.
+    *   Configured the camera to provide synchronized visual observations alongside robot joint states.
+    *   Implemented efficient BGR image capture compatible with LeRobot's data collection pipeline.
+
+3.  **Configuration & Testing**:
+    *   Created `Ned2FollowerConfig` to simplify robot setup (IP address, camera resolution, fps).
+    *   Added `ned2_record_config.yaml` for standardized data collection tasks (e.g., "pick and place").
+    *   Provided test scripts (`test_ned2_with_camera.py`, `test_oakd.py`) to verify hardware connectivity and data stream integrity.
+
+This contribution enables the Ned2 robot to be used for **imitation learning** tasks, allowing users to record datasets and train policies using LeRobot's state-of-the-art algorithms.
+
 ### Acknowledgment
 
 - The LeRobot team 🤗 for building SmolVLA [Paper](https://arxiv.org/abs/2506.01844), [Blog](https://huggingface.co/blog/smolvla).
